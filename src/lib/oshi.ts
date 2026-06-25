@@ -123,16 +123,18 @@ function stripNg(text: string, ngWords: string): string {
   return out.trim();
 }
 
+// 体調が強くつらそうなワード（医療は断定せず相談を促す・CLAUDE.md §14）
+const HEAVY_HEALTH = ["つらい", "痛い", "しんどい", "病院", "熱", "吐き", "めまい", "限界", "苦しい"];
+
 export function oshiReply(
   userText: string,
   oshi: OshiConfig,
   seed: number,
-  onPeriod = false,
+  omamori = false,
 ): { reply: string; suggestion: string | null } {
   const suggestion = detectTodo(userText);
-  // 生理中＋やさしくモードONなら、口調を上書きしてやさしくする
-  const gentle = onPeriod && oshi.gentleOnPeriod;
-  const bank = gentle ? GENTLE : (REPLIES[oshi.tone] ?? REPLIES["やさしい"]);
+  // お守りモード中は、口調を上書きして特別やさしくする
+  const bank = omamori ? GENTLE : (REPLIES[oshi.tone] ?? REPLIES["やさしい"]);
   const tpl = suggestion ? pick(bank.withTask, seed) : pick(bank.plain, seed);
   let reply = tpl
     .replaceAll("{me}", oshi.yourName || "きみ")
@@ -141,6 +143,10 @@ export function oshiReply(
   if (oshi.catchphrase && seed % 3 === 0) reply = `${reply} ${oshi.catchphrase}`;
   // 使わない言葉を除去
   if (oshi.ngWords) reply = stripNg(reply, oshi.ngWords);
+  // 強い体調ワードがあれば、診断せず相談を促す一言（医療アドバイスはしない）
+  if (HEAVY_HEALTH.some((w) => userText.includes(w))) {
+    reply += " ……つらいときは無理しないで、医療機関や信頼できる人にも頼ってね。";
+  }
   return { reply, suggestion };
 }
 
@@ -170,8 +176,8 @@ export function buildSystemPrompt(oshi: OshiConfig): string {
 }
 
 // 起動時 / ホームの「今日のひとこと」
-export function oshiGreeting(oshi: OshiConfig, seed: number, onPeriod = false): string {
-  const gentle = onPeriod && oshi.gentleOnPeriod;
+export function oshiGreeting(oshi: OshiConfig, seed: number, omamori = false): string {
+  const gentle = omamori;
   const lines = gentle
     ? [
         "今日はしんどい日だよね。無理しないでね。",

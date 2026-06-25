@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useStore } from "../store";
+import { useStore, isOmamoriActive } from "../store";
 import { Screen, TopBar, Card, SectionTitle } from "../components/ui";
 import { Avatar } from "../components/Avatar";
 import { oshiGreeting } from "../lib/oshi";
@@ -16,17 +16,17 @@ function todayLabel(): string {
 
 export function Home({ go }: { go: (s: ScreenId) => void }) {
   const { s, toggleTodo, addTodo } = useStore();
-  const { oshi, todos, memos, plans, health } = s;
+  const { oshi, todos, memos, plans } = s;
+  const omamori = isOmamoriActive(s);
   const [quick, setQuick] = useState("");
   const addQuick = () => {
     if (!quick.trim()) return;
     addTodo(quick);
     setQuick("");
   };
-  const onPeriod = !!health.cycleStartDate;
   const greet = useMemo(
-    () => oshiGreeting(oshi, todos.length + memos.length, onPeriod),
-    [oshi, todos.length, memos.length, onPeriod],
+    () => oshiGreeting(oshi, todos.length + memos.length, omamori),
+    [oshi, todos.length, memos.length, omamori],
   );
   const doneCount = todos.filter((t) => t.done).length;
 
@@ -36,6 +36,12 @@ export function Home({ go }: { go: (s: ScreenId) => void }) {
         title={`おかえり、${oshi.yourName}。`}
         caption={`${todayLabel()}　今日も一緒にいるよ。`}
       />
+
+      {omamori && (
+        <div className="mb-3 flex items-center gap-2 rounded-2xl bg-accent-soft px-4 py-2.5 text-[13px] font-medium text-accent">
+          🛡 お守りモード中。今日は無理しないでいいよ。
+        </div>
+      )}
 
       {/* 推しカード */}
       <Card className="bg-gradient-to-br from-accent-soft to-card" onClick={() => go("chat")}>

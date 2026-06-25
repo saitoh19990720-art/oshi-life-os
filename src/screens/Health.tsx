@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useStore, cycleDay } from "../store";
+import { useStore, cycleDay, isOmamoriActive } from "../store";
 import { Screen, TopBar, Card, Chip } from "../components/ui";
+import type { OmamoriMode } from "../types";
 import { Calendar } from "../components/Calendar";
 import { predictPeriod } from "../lib/period";
 import { todayKey, formatMD } from "../lib/date";
@@ -11,8 +12,14 @@ const PAINS: Pain[] = ["なし", "少し", "つらい"];
 const SYMPTOMS = ["眠気", "だるさ", "頭痛", "腹痛", "むくみ", "イライラ", "食欲↑", "肌荒れ"];
 
 export function Health() {
-  const { s, startPeriod, endPeriod, setMood, setPain, toggleSymptom } = useStore();
+  const { s, startPeriod, endPeriod, setMood, setPain, toggleSymptom, setOmamoriMode } = useStore();
   const { health } = s;
+  const omamori = isOmamoriActive(s);
+  const OMAMORI: { v: OmamoriMode; label: string }[] = [
+    { v: "auto", label: "自動" },
+    { v: "on", label: "オン" },
+    { v: "off", label: "オフ" },
+  ];
   const [selected, setSelected] = useState(todayKey());
 
   const day = cycleDay(health.cycleStartDate);
@@ -78,6 +85,28 @@ export function Health() {
             </p>
           )}
         </div>
+      </Card>
+
+      {/* お守りモード */}
+      <Card className="mt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[13px] font-bold text-ink">🛡 お守りモード</p>
+            <p className="mt-0.5 text-[11px] text-muted">
+              今：{omamori ? "ON（やさしく見守り中）" : "OFF"}
+            </p>
+          </div>
+          <div className="flex gap-1.5">
+            {OMAMORI.map((o) => (
+              <Chip key={o.v} active={s.omamoriMode === o.v} onClick={() => setOmamoriMode(o.v)}>
+                {o.label}
+              </Chip>
+            ))}
+          </div>
+        </div>
+        <p className="mt-2.5 text-[11px] leading-snug text-muted">
+          自動＝生理中・夜・体調つらい日に発動。発動中は推しが特別やさしく、急かさず、休む選択を先に出すよ。
+        </p>
       </Card>
 
       {/* カレンダー（一日ごと管理） */}

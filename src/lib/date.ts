@@ -28,3 +28,12 @@ export function formatMD(k: string): string {
   const d = keyToDate(k);
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
+
+export type TimeOfDay = "morning" | "day" | "evening" | "night";
+export function timeOfDay(): TimeOfDay {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 10) return "morning";
+  if (h >= 10 && h < 17) return "day";
+  if (h >= 17 && h < 22) return "evening";
+  return "night"; // 22時〜翌5時＝寝る前モード寄り
+}

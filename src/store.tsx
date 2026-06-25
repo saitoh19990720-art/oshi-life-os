@@ -6,9 +6,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AppState, DailyLog, Pain, PlanId, Theme, Todo } from "./types";
+import type { AppState, DailyLog, OmamoriMode, Pain, PlanId, Theme, Todo } from "./types";
 import { oshiReply } from "./lib/oshi";
-import { todayKey, diffDays } from "./lib/date";
+import { todayKey, diffDays, timeOfDay } from "./lib/date";
 
 const KEY = "oshi-life-os:v1";
 
@@ -16,6 +16,7 @@ const initialState: AppState = {
   onboarded: false,
   theme: "light",
   plan: "free",
+  omamoriMode: "auto",
   oshi: {
     name: "あかり",
     yourName: "しずく",
@@ -28,6 +29,7 @@ const initialState: AppState = {
     ngWords: "",
     gentleOnPeriod: true,
     supportStyles: ["見守る"],
+    replyLength: "普通",
   },
   todos: [
     { id: "t1", title: "クライアントへの返信", done: false, createdAt: Date.now() },
@@ -88,6 +90,7 @@ export interface Store {
   toggleSymptom: (dateKey: string, sym: string) => void;
   // プラン・設定
   setPlan: (p: PlanId) => void;
+  setOmamoriMode: (m: OmamoriMode) => void;
   updateOshi: (patch: Partial<AppState["oshi"]>) => void;
   setNotification: (k: keyof AppState["notifications"], v: boolean) => void;
   resetAll: () => void;
@@ -145,8 +148,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const clean = text.trim();
           if (!clean) return d;
           const seed = d.chat.length;
-          const onPeriod = !!d.health.cycleStartDate;
-          const { reply, suggestion } = oshiReply(clean, d.oshi, seed, onPeriod);
+          const { reply, suggestion } = oshiReply(clean, d.oshi, seed, isOmamoriActive(d));
           const mine = { id: uid(), role: "me" as const, text: clean, ts: Date.now() };
           const theirs = {
             id: uid(),
@@ -235,6 +237,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }),
 
       setPlan: (p) => patch((d) => ({ ...d, plan: p })),
+      setOmamoriMode: (m) => patch((d) => ({ ...d, omamoriMode: m })),
       updateOshi: (p) => patch((d) => ({ ...d, oshi: { ...d.oshi, ...p } })),
       setNotification: (k, v) =>
         patch((d) => ({ ...d, notifications: { ...d.notifications, [k]: v } })),
@@ -255,4 +258,14 @@ export function useStore(): Store {
 export function cycleDay(cycleStartDate: string | null): number | null {
   if (!cycleStartDate) return null;
   return Math.max(1, diffDays(todayKey(), cycleStartDate) + 1);
+}
+
+// お守りモードが今ONか（手動オン/オフ優先、自動＝生理中 or 夜 or 今日つらい）
+export function isOmamoriActive(s: AppState): boolean {
+  if (s.omamoriMode === "on") return true;
+  if (s.omamoriMode === "off") return false;
+  const onPeriod = !!s.health.cycleStartDate && s.oshi.gentleOnPeriod;
+  const night = timeOfDay() === "night";
+  const rough = s.health.logs[todayKey()]?.pain === "つらい";
+  return onPeriod || night || rough;
 }

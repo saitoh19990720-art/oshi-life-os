@@ -20,6 +20,7 @@ export interface OshiConfig {
   ngWords: string; // 使わない言葉（NGワード・カンマ区切り）
   gentleOnPeriod: boolean; // 生理中だけ特別やさしくモード
   supportStyles: string[]; // 生活でどう支えてほしい（ほめる/見守る/休ませる 等・複数）
+  replyLength: string; // 返答テンポ（短文/普通/長文）
 }
 
 export interface Todo {
@@ -76,10 +77,13 @@ export interface Notifications {
   cycleAlert: boolean;
 }
 
+export type OmamoriMode = "auto" | "on" | "off";
+
 export interface AppState {
   onboarded: boolean;
   theme: Theme;
   plan: PlanId;
+  omamoriMode: OmamoriMode; // お守りモード（自動＝生理/夜/つらい日に発動）
   oshi: OshiConfig;
   todos: Todo[];
   memos: Memo[];
