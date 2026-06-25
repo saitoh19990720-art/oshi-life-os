@@ -66,6 +66,9 @@ export interface Store {
   sendMessage: (text: string) => void;
   acceptSuggestion: (msgId: string) => void;
   skipSuggestion: (msgId: string) => void;
+  // メモ
+  addMemo: (text: string) => void;
+  deleteMemo: (id: string) => void;
   // 体調
   setCycleStart: (iso: string | null) => void;
   setMood: (m: string) => void;
@@ -164,6 +167,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ...d,
           chat: d.chat.map((m) => (m.id === msgId ? { ...m, suggestionResolved: true } : m)),
         })),
+
+      addMemo: (text) =>
+        patch((d) => {
+          const t = text.trim();
+          if (!t) return d;
+          const now = new Date();
+          const date = `${`${now.getMonth() + 1}`.padStart(2, "0")}/${`${now.getDate()}`.padStart(2, "0")}`;
+          return { ...d, memos: [{ id: uid(), title: t, date }, ...d.memos] };
+        }),
+      deleteMemo: (id) => patch((d) => ({ ...d, memos: d.memos.filter((m) => m.id !== id) })),
 
       setCycleStart: (iso) => patch((d) => ({ ...d, health: { ...d.health, cycleStartDate: iso } })),
       setMood: (m) => patch((d) => ({ ...d, health: { ...d.health, mood: m } })),

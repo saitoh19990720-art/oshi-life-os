@@ -4,7 +4,7 @@ export type Theme = "light" | "dark";
 export type Relationship = "推し" | "相棒" | "恋人未満" | "友達";
 export type Tone = "やさしい" | "クール" | "甘い" | "ツンデレ";
 export type PlanId = "free" | "health" | "omamori";
-export type ScreenId = "home" | "chat" | "todo" | "health" | "plan" | "settings";
+export type ScreenId = "home" | "chat" | "todo" | "health" | "plan" | "settings" | "memo";
 
 export interface OshiConfig {
   name: string;

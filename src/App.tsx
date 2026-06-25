@@ -6,6 +6,7 @@ import { Home } from "./screens/Home";
 import { Chat } from "./screens/Chat";
 import { Todo } from "./screens/Todo";
 import { Health } from "./screens/Health";
+import { Memo } from "./screens/Memo";
 import { Plan } from "./screens/Plan";
 import { Settings } from "./screens/Settings";
 import type { ScreenId } from "./types";
@@ -38,6 +39,7 @@ function AppShell() {
       {screen === "chat" && <Chat />}
       {screen === "todo" && <Todo />}
       {screen === "health" && <Health />}
+      {screen === "memo" && <Memo go={setScreen} />}
       {screen === "plan" && <Plan />}
       {screen === "settings" && <Settings />}
       <BottomNav active={screen} onChange={setScreen} />

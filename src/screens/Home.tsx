@@ -77,15 +77,20 @@ export function Home({ go }: { go: (s: ScreenId) => void }) {
       </div>
 
       {/* 最近のメモ */}
-      <SectionTitle>🗒 最近のメモ</SectionTitle>
-      <Card className="flex items-center justify-between">
-        <div>
+      <SectionTitle>
+        🗒 最近のメモ
+        <span className="ml-auto text-[12px] font-bold text-accent">書く・ぜんぶ見る →</span>
+      </SectionTitle>
+      <Card className="flex items-center justify-between" onClick={() => go("memo")}>
+        <div className="min-w-0">
           <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent">
             メモ
           </span>
-          <p className="mt-1.5 text-[14px] font-medium text-ink">{memos[0]?.title ?? "メモはまだないよ"}</p>
+          <p className="mt-1.5 truncate text-[14px] font-medium text-ink">
+            {memos[0]?.title ?? "タップしてメモを書く"}
+          </p>
         </div>
-        <span className="text-[12px] text-muted">{memos[0]?.date ?? ""}</span>
+        <span className="ml-3 shrink-0 text-[12px] text-muted">{memos[0]?.date ?? ""}</span>
       </Card>
 
       {/* 近日の予定 */}
