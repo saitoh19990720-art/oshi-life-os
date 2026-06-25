@@ -1,38 +1,50 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useStore } from "../store";
 import { Screen, TopBar, Card } from "../components/ui";
 
 export function Todo() {
   const { s, addTodo, toggleTodo, editTodo, deleteTodo } = useStore();
   const [text, setText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const remain = s.todos.filter((t) => !t.done).length;
 
   const add = () => {
-    if (!text.trim()) return;
+    // 空のときは「押せない」感を消すため、入力欄をフォーカスして促す
+    if (!text.trim()) {
+      inputRef.current?.focus();
+      return;
+    }
     addTodo(text);
     setText("");
+    inputRef.current?.focus();
   };
 
   return (
     <Screen>
       <TopBar title="📋 TODO" caption={`残り ${remain} 件。会話からも自動でたまるよ。`} />
 
-      {/* 追加 */}
-      <div className="mb-4 flex items-center gap-2">
+      {/* 追加（formにして Enter でも + でも確実に追加） */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          add();
+        }}
+        className="mb-4 flex items-center gap-2"
+      >
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && add()}
           placeholder="やること を追加…"
           className="h-11 flex-1 rounded-full border border-line bg-surface px-4 text-[14px] text-ink outline-none placeholder:text-muted focus:border-accent"
         />
         <button
-          onClick={add}
+          type="submit"
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-[22px] text-white active:opacity-80"
         >
           +
         </button>
-      </div>
+      </form>
 
       <Card className="space-y-1 p-2">
         {s.todos.length === 0 && (

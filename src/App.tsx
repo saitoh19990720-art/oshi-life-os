@@ -13,8 +13,8 @@ import type { ScreenId } from "./types";
 
 function Phone({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-[100dvh] justify-center bg-line/40">
-      <div className="relative flex h-[100dvh] w-full max-w-phone flex-col overflow-hidden bg-bg shadow-2xl">
+    <div className="app-minh flex justify-center bg-line/40">
+      <div className="app-h relative flex w-full max-w-phone flex-col overflow-hidden bg-bg shadow-2xl">
         {children}
       </div>
     </div>

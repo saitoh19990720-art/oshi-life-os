@@ -43,3 +43,13 @@ body {
   width: 0;
   height: 0;
 }
+
+/* 画面高さ：古いブラウザは 100vh、対応ブラウザは 100dvh（上書き）。どの環境でも崩れない */
+.app-minh {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.app-h {
+  height: 100vh;
+  height: 100dvh;
+}
