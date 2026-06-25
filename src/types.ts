@@ -17,6 +17,7 @@ export interface OshiConfig {
   catchphrase: string; // 口癖（例：〜だね）
   persona: string; // 性格・キャラ設定（自由記述）
   ngWords: string; // 使わない言葉（NGワード・カンマ区切り）
+  gentleOnPeriod: boolean; // 生理中だけ特別やさしくモード
 }
 
 export interface Todo {

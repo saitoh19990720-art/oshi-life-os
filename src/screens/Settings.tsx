@@ -174,6 +174,19 @@ export function Settings() {
         <p className="text-[11px] leading-snug text-muted">
           ※ 性格・NGは保存される。AI会話につないだ時にフルに効く（今はルールベースなので一人称・口癖・NG除去まで反映）。
         </p>
+
+        <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+          <div className="min-w-0">
+            <p className="text-[14px] font-medium text-ink">🩸 生理中だけ、やさしくモード</p>
+            <p className="mt-0.5 text-[11px] leading-snug text-muted">
+              体調で「生理開始」を記録した日は、設定した口調に関係なく特別やさしくなるよ。
+            </p>
+          </div>
+          <Toggle
+            on={oshi.gentleOnPeriod}
+            onClick={() => updateOshi({ gentleOnPeriod: !oshi.gentleOnPeriod })}
+          />
+        </div>
       </Card>
 
       {/* テーマ */}

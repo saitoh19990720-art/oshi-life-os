@@ -25,6 +25,7 @@ const initialState: AppState = {
     catchphrase: "",
     persona: "やさしくて、しずくのことをちゃんと見てる。",
     ngWords: "",
+    gentleOnPeriod: true,
   },
   todos: [
     { id: "t1", title: "クライアントへの返信", done: false, createdAt: Date.now() },
@@ -129,7 +130,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const clean = text.trim();
           if (!clean) return d;
           const seed = d.chat.length;
-          const { reply, suggestion } = oshiReply(clean, d.oshi, seed);
+          const onPeriod = !!d.health.cycleStartDate;
+          const { reply, suggestion } = oshiReply(clean, d.oshi, seed, onPeriod);
           const mine = { id: uid(), role: "me" as const, text: clean, ts: Date.now() };
           const theirs = {
             id: uid(),

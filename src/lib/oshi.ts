@@ -73,6 +73,18 @@ const REPLIES: Record<Tone, { withTask: string[]; plain: string[] }> = {
   },
 };
 
+// 生理中の「特別やさしく」モード用。設定した口調に関係なく、この日はこれが優先。
+const GENTLE: { withTask: string[]; plain: string[] } = {
+  withTask: [
+    "{me}、今日は体しんどい日だよね。無理しないで。これは{i}が覚えとくから、できる時でいいよ。",
+    "がんばらなくて大丈夫。{i}が代わりに覚えとくね。今はあったかくして休も？",
+  ],
+  plain: [
+    "{me}、今日はそういう日だよね。そばにいるよ。あったかいもの飲んだ？",
+    "無理しないでね。しんどかったら、ただ話すだけでいいから。{i}はここにいるよ。",
+  ],
+};
+
 function pick(arr: string[], seed: number): string {
   return arr[seed % arr.length];
 }
@@ -92,9 +104,12 @@ export function oshiReply(
   userText: string,
   oshi: OshiConfig,
   seed: number,
+  onPeriod = false,
 ): { reply: string; suggestion: string | null } {
   const suggestion = detectTodo(userText);
-  const bank = REPLIES[oshi.tone];
+  // 生理中＋やさしくモードONなら、口調を上書きしてやさしくする
+  const gentle = onPeriod && oshi.gentleOnPeriod;
+  const bank = gentle ? GENTLE : REPLIES[oshi.tone];
   const tpl = suggestion ? pick(bank.withTask, seed) : pick(bank.plain, seed);
   let reply = tpl
     .replaceAll("{me}", oshi.yourName || "きみ")
@@ -117,6 +132,8 @@ export function buildSystemPrompt(oshi: OshiConfig): string {
   if (oshi.catchphrase) lines.push(`口癖：「${oshi.catchphrase}」を時々使います。`);
   if (oshi.persona) lines.push(`性格・設定：${oshi.persona}`);
   if (oshi.ngWords) lines.push(`次の言葉は絶対に使いません：${oshi.ngWords}`);
+  if (oshi.gentleOnPeriod)
+    lines.push("相手が生理中・体調が悪い日は、口調に関係なく特別やさしく、無理させない言い方にします。");
   lines.push(
     "返事は短め・人間らしく。説教やお説教くさい言い方はしません。",
     "相手の生活（TODO・体調・予定）にそっと寄り添い、会話の流れで自然に整理を手伝います。",
@@ -126,12 +143,21 @@ export function buildSystemPrompt(oshi: OshiConfig): string {
 }
 
 // 起動時 / ホームの「今日のひとこと」
-export function oshiGreeting(oshi: OshiConfig, seed: number): string {
-  const lines = [
-    "今日、何かやり残してることある？",
-    "おかえり。ちゃんとごはん食べた？",
-    "今日もおつかれ。少しだけ話そ？",
-    "無理してない？{me}のペースでいいからね。",
-  ];
-  return pick(lines, seed).replaceAll("{me}", oshi.yourName || "きみ");
+export function oshiGreeting(oshi: OshiConfig, seed: number, onPeriod = false): string {
+  const gentle = onPeriod && oshi.gentleOnPeriod;
+  const lines = gentle
+    ? [
+        "今日はしんどい日だよね。無理しないでね。",
+        "おかえり。あったかくして、ゆっくりしてね。",
+        "がんばらなくていいよ。そばにいるからね。",
+      ]
+    : [
+        "今日、何かやり残してることある？",
+        "おかえり。ちゃんとごはん食べた？",
+        "今日もおつかれ。少しだけ話そ？",
+        "無理してない？{me}のペースでいいからね。",
+      ];
+  return pick(lines, seed)
+    .replaceAll("{me}", oshi.yourName || "きみ")
+    .replaceAll("{i}", oshi.firstPerson || "わたし");
 }

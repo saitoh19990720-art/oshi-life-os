@@ -16,8 +16,12 @@ function todayLabel(): string {
 
 export function Home({ go }: { go: (s: ScreenId) => void }) {
   const { s, toggleTodo } = useStore();
-  const { oshi, todos, memos, plans } = s;
-  const greet = useMemo(() => oshiGreeting(oshi, todos.length + memos.length), [oshi, todos.length, memos.length]);
+  const { oshi, todos, memos, plans, health } = s;
+  const onPeriod = !!health.cycleStartDate;
+  const greet = useMemo(
+    () => oshiGreeting(oshi, todos.length + memos.length, onPeriod),
+    [oshi, todos.length, memos.length, onPeriod],
+  );
   const doneCount = todos.filter((t) => t.done).length;
 
   return (
