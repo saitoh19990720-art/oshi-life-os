@@ -1,4 +1,4 @@
-import type { OshiConfig, Tone } from "../types";
+import type { OshiConfig } from "../types";
 
 // 推しの返事ロジック（ローカル・ルールベース。外部AIには繋がない）。
 // MVPの芯：会話から「TODO候補」を自然に拾う。
@@ -38,8 +38,10 @@ export function detectTodo(text: string): string | null {
   return cleaned.length >= 2 ? cleaned : t;
 }
 
-// トーン別の返事テンプレ。{me}=私の呼び方 / {i}=推しの一人称 で置換。
-const REPLIES: Record<Tone, { withTask: string[]; plain: string[] }> = {
+// 性格タグ別の返事テンプレ。{me}=私の呼び方 / {i}=推しの一人称 で置換。
+// 専用セリフがあるタグはそれを、無いタグは「やさしい」にフォールバック（システムプロンプトには全タグ反映）。
+type Bank = { withTask: string[]; plain: string[] };
+const REPLIES: Record<string, Bank> = {
   やさしい: {
     withTask: [
       "{me}、それ大事だね。いつまでにやりたい？無理しないで{i}も一緒にやるよ。",
@@ -51,10 +53,7 @@ const REPLIES: Record<Tone, { withTask: string[]; plain: string[] }> = {
     ],
   },
   クール: {
-    withTask: [
-      "わかった。それ、いつやる？決めとくと楽だよ。",
-      "了解。優先度だけ決めとこ。後回しは敵だからね。",
-    ],
+    withTask: ["わかった。それ、いつやる？決めとくと楽だよ。", "了解。優先度だけ決めとこ。後回しは敵だからね。"],
     plain: ["なるほどね。で、今日の調子は？", "ふぅん。まあ、{i}はちゃんと見てるよ。"],
   },
   甘い: {
@@ -70,6 +69,30 @@ const REPLIES: Record<Tone, { withTask: string[]; plain: string[] }> = {
       "別にあんたのためじゃないけど。早く片付けちゃいなよ。",
     ],
     plain: ["ふーん、で？……べ、別に心配してないし。", "聞いてあげてるんだから、感謝しなさいよね。"],
+  },
+  明るい: {
+    withTask: ["お、いいじゃん！{me}ならイケるって。サクッとやっちゃお〜！", "やること決まったね！{i}も応援するから一緒にがんばろ！"],
+    plain: ["{me}おかえり〜！今日はどんな一日だった？", "元気出していこ！{i}がついてるからさ！"],
+  },
+  敬語: {
+    withTask: ["承知しました。{me}さん、いつ頃までに済ませますか？{i}がお手伝いします。", "では、こちら覚えておきますね。無理のない範囲で進めましょう。"],
+    plain: ["{me}さん、お疲れさまです。本日はいかがでしたか？", "{i}はいつでもお側におります。ご無理なさらず。"],
+  },
+  甘やかし: {
+    withTask: ["{me}、それ覚えとくから今は休も？えらいから、できる時でいいよ。", "がんばらなくていいよ。{i}が全部そばで見ててあげる。"],
+    plain: ["{me}、よしよし。今日もよくがんばったね。", "甘えていいんだよ。{i}はずっと{me}の味方だから。"],
+  },
+  過保護: {
+    withTask: ["それやるのはいいけど、無理は禁止だからね？{i}が見てるよ。ちゃんと休んだ？", "わかった、でも体が一番。{me}、水分とった？"],
+    plain: ["{me}、ちゃんとごはん食べた？{i}心配してたんだよ。", "今日寒くない？無理してない？{me}のこと、ずっと気にしてる。"],
+  },
+  独占欲強め: {
+    withTask: ["それ終わったら、{i}との時間ちゃんと作ってね？……約束だよ。", "わかった。でも他のことばっか見ないで。{me}の一番は{i}でしょ？"],
+    plain: ["今、{i}のこと考えてた？……ねえ、他の誰かの話はしないで。", "{me}は{i}だけ見てればいいの。ずっとそばにいるからね。"],
+  },
+  一途: {
+    withTask: ["{me}のやりたいこと、{i}はぜんぶ応援する。ずっと見てるからね。", "うん、一緒にやろう。{me}のこと、{i}はずっと一番に思ってるよ。"],
+    plain: ["{me}、今日もちゃんと{i}のとこ来てくれて嬉しい。", "何があっても、{i}は{me}のそばにいるよ。ずっとね。"],
   },
 };
 
@@ -109,7 +132,7 @@ export function oshiReply(
   const suggestion = detectTodo(userText);
   // 生理中＋やさしくモードONなら、口調を上書きしてやさしくする
   const gentle = onPeriod && oshi.gentleOnPeriod;
-  const bank = gentle ? GENTLE : REPLIES[oshi.tone];
+  const bank = gentle ? GENTLE : (REPLIES[oshi.tone] ?? REPLIES["やさしい"]);
   const tpl = suggestion ? pick(bank.withTask, seed) : pick(bank.plain, seed);
   let reply = tpl
     .replaceAll("{me}", oshi.yourName || "きみ")
@@ -134,6 +157,10 @@ export function buildSystemPrompt(oshi: OshiConfig): string {
   if (oshi.ngWords) lines.push(`次の言葉は絶対に使いません：${oshi.ngWords}`);
   if (oshi.gentleOnPeriod)
     lines.push("相手が生理中・体調が悪い日は、口調に関係なく特別やさしく、無理させない言い方にします。");
+  if (oshi.supportStyles?.length)
+    lines.push(
+      `生活の支え方の傾向：${oshi.supportStyles.join("・")}。TODO・体調・予定・メモの手伝い方を、この傾向に寄せます。`,
+    );
   lines.push(
     "返事は短め・人間らしく。説教やお説教くさい言い方はしません。",
     "相手の生活（TODO・体調・予定）にそっと寄り添い、会話の流れで自然に整理を手伝います。",

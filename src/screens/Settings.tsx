@@ -2,11 +2,24 @@ import { useStore } from "../store";
 import { Screen, TopBar, Card, Chip, PrimaryButton } from "../components/ui";
 import { Avatar, fileToAvatarDataUrl } from "../components/Avatar";
 import { buildSystemPrompt } from "../lib/oshi";
-import type { Relationship, Tone } from "../types";
+import type { Relationship } from "../types";
 
 const AVATARS = ["🌙", "⭐", "💫", "🐰", "🐱", "🌸", "💙", "🎀", "🦋", "🍓"];
 const RELATIONS: Relationship[] = ["推し", "相棒", "恋人未満", "友達"];
-const TONES: Tone[] = ["やさしい", "クール", "甘い", "ツンデレ"];
+const FREE_TONES = ["やさしい", "クール", "甘い", "ツンデレ", "明るい", "敬語"];
+const PAID_TONES = [
+  "甘やかし",
+  "過保護",
+  "一途",
+  "独占欲強め",
+  "嫉妬深め",
+  "面倒見がいい",
+  "心配性",
+  "無口",
+  "厳しめ",
+  "穏やか",
+];
+const SUPPORT_STYLES = ["ほめる", "見守る", "急かす", "休ませる", "一緒に整理", "短く言う"];
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
@@ -132,15 +145,53 @@ export function Settings() {
           </div>
         </div>
         <div>
-          <span className="text-[12px] font-bold text-muted">口調・話し方</span>
+          <span className="text-[12px] font-bold text-muted">性格・口調</span>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wide text-muted">無料</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
-            {TONES.map((t) => (
+            {FREE_TONES.map((t) => (
               <Chip key={t} active={oshi.tone === t} onClick={() => updateOshi({ tone: t })}>
                 {t}
               </Chip>
             ))}
           </div>
-          <p className="mt-2 text-[11px] text-muted">※ 口調はチャットの返事に反映されるよ。</p>
+          <p className="mt-3 text-[10px] font-bold text-accent">🧿 お守りプラン（課金で解放・作者は無料）</p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {PAID_TONES.map((t) => (
+              <Chip key={t} active={oshi.tone === t} onClick={() => updateOshi({ tone: t })}>
+                {t}
+              </Chip>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] leading-snug text-muted">
+            ※ 性格はチャットの返事に反映。人気タグは専用セリフ、他はやさしめ＋AI接続で全タグフル反映。
+          </p>
+        </div>
+
+        <div>
+          <span className="text-[12px] font-bold text-muted">生活でどう支えてほしい？（複数OK）</span>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {SUPPORT_STYLES.map((st) => {
+              const on = oshi.supportStyles.includes(st);
+              return (
+                <Chip
+                  key={st}
+                  active={on}
+                  onClick={() =>
+                    updateOshi({
+                      supportStyles: on
+                        ? oshi.supportStyles.filter((x) => x !== st)
+                        : [...oshi.supportStyles, st],
+                    })
+                  }
+                >
+                  {st}
+                </Chip>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[11px] leading-snug text-muted">
+            ※ 推しの「生活の支え方」。これがこのアプリの核（性格で管理のされ方が変わる）。AI接続でフルに効く。
+          </p>
         </div>
       </Card>
 

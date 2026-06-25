@@ -27,6 +27,7 @@ const initialState: AppState = {
     persona: "やさしくて、しずくのことをちゃんと見てる。",
     ngWords: "",
     gentleOnPeriod: true,
+    supportStyles: ["見守る"],
   },
   todos: [
     { id: "t1", title: "クライアントへの返信", done: false, createdAt: Date.now() },

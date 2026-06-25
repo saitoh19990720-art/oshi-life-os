@@ -2,7 +2,8 @@
 
 export type Theme = "light" | "dark";
 export type Relationship = "推し" | "相棒" | "恋人未満" | "友達";
-export type Tone = "やさしい" | "クール" | "甘い" | "ツンデレ";
+// 性格タグ（無料＋お守りプラン）。自由に増やせるよう string。
+export type Tone = string;
 export type PlanId = "free" | "health" | "omamori";
 export type ScreenId = "home" | "chat" | "todo" | "health" | "plan" | "settings" | "memo";
 
@@ -18,6 +19,7 @@ export interface OshiConfig {
   persona: string; // 性格・キャラ設定（自由記述）
   ngWords: string; // 使わない言葉（NGワード・カンマ区切り）
   gentleOnPeriod: boolean; // 生理中だけ特別やさしくモード
+  supportStyles: string[]; // 生活でどう支えてほしい（ほめる/見守る/休ませる 等・複数）
 }
 
 export interface Todo {
