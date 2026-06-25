@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f7f8fc;
+  --surface: #eef4ff;
+  --card: #ffffff;
+  --ink: #1e2633;
+  --muted: #5f7fa8;
+  --accent: #5a84c9;
+  --accent-soft: #dce9ff;
+  --line: #e2ebf8;
+}
+
+.dark {
+  --bg: #111620;
+  --surface: #1a2230;
+  --card: #1c2533;
+  --ink: #e9eef7;
+  --muted: #8aa1bf;
+  --accent: #7fa8e8;
+  --accent-soft: #243149;
+  --line: #2a3445;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-bg font-gothic text-ink antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "palt" 1;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* スクロールバーを控えめに */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
