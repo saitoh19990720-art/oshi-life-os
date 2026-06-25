@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useStore } from "../store";
 import { Screen, TopBar, Card, SectionTitle } from "../components/ui";
 import { Avatar } from "../components/Avatar";
@@ -15,8 +15,14 @@ function todayLabel(): string {
 }
 
 export function Home({ go }: { go: (s: ScreenId) => void }) {
-  const { s, toggleTodo } = useStore();
+  const { s, toggleTodo, addTodo } = useStore();
   const { oshi, todos, memos, plans, health } = s;
+  const [quick, setQuick] = useState("");
+  const addQuick = () => {
+    if (!quick.trim()) return;
+    addTodo(quick);
+    setQuick("");
+  };
   const onPeriod = !!health.cycleStartDate;
   const greet = useMemo(
     () => oshiGreeting(oshi, todos.length + memos.length, onPeriod),
@@ -73,6 +79,23 @@ export function Home({ go }: { go: (s: ScreenId) => void }) {
               </span>
             </button>
           ))}
+
+          {/* ホームから直接ついか */}
+          <div className="flex items-center gap-2 px-1 pt-1">
+            <input
+              value={quick}
+              onChange={(e) => setQuick(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addQuick()}
+              placeholder="やること を追加…"
+              className="h-9 flex-1 rounded-full border border-line bg-surface px-3 text-[13px] text-ink outline-none placeholder:text-muted focus:border-accent"
+            />
+            <button
+              onClick={addQuick}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-[18px] text-white active:opacity-80"
+            >
+              +
+            </button>
+          </div>
         </Card>
       </div>
 

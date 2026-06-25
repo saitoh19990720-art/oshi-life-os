@@ -49,11 +49,23 @@ export interface ChatMsg {
   suggestionResolved?: boolean;
 }
 
-export interface HealthState {
-  cycleStartDate: string | null; // ISO date
+export type Pain = "なし" | "少し" | "つらい";
+
+export interface DailyLog {
   mood: string | null; // 絵文字
-  pain: "なし" | "少し" | "つらい" | null;
+  pain: Pain | null;
   symptoms: string[];
+}
+
+export interface PeriodLog {
+  start: string; // YYYY-MM-DD
+  end: string | null; // YYYY-MM-DD（進行中はnull）
+}
+
+export interface HealthState {
+  cycleStartDate: string | null; // 進行中の生理の開始日キー（無ければnull）
+  periods: PeriodLog[]; // 生理の履歴（予測に使う）
+  logs: Record<string, DailyLog>; // 日付キー → その日の記録（一日ごと管理）
 }
 
 export interface Notifications {

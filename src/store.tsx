@@ -6,8 +6,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AppState, PlanId, Theme, Todo } from "./types";
+import type { AppState, DailyLog, Pain, PlanId, Theme, Todo } from "./types";
 import { oshiReply } from "./lib/oshi";
+import { todayKey, diffDays } from "./lib/date";
 
 const KEY = "oshi-life-os:v1";
 
@@ -34,15 +35,24 @@ const initialState: AppState = {
   memos: [{ id: "m1", title: "気になったコスメ情報", date: "05/01" }],
   plans: [{ id: "p1", text: "明日の予定確認", when: "近日中" }],
   chat: [],
-  health: { cycleStartDate: null, mood: null, pain: null, symptoms: [] },
+  health: { cycleStartDate: null, periods: [], logs: {} },
   notifications: { dailyCheckin: true, todoReminder: true, cycleAlert: false },
 };
+
+const EMPTY_LOG: DailyLog = { mood: null, pain: null, symptoms: [] };
 
 function load(): AppState {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return initialState;
-    return { ...initialState, ...(JSON.parse(raw) as Partial<AppState>) };
+    const saved = JSON.parse(raw) as Partial<AppState>;
+    // 新しいフィールドが増えても壊れないよう、health/oshi は深くマージ
+    return {
+      ...initialState,
+      ...saved,
+      oshi: { ...initialState.oshi, ...(saved.oshi ?? {}) },
+      health: { ...initialState.health, ...(saved.health ?? {}) },
+    };
   } catch {
     return initialState;
   }
@@ -70,10 +80,11 @@ export interface Store {
   addMemo: (text: string) => void;
   deleteMemo: (id: string) => void;
   // 体調
-  setCycleStart: (iso: string | null) => void;
-  setMood: (m: string) => void;
-  setPain: (p: AppState["health"]["pain"]) => void;
-  toggleSymptom: (sym: string) => void;
+  startPeriod: () => void;
+  endPeriod: () => void;
+  setMood: (dateKey: string, m: string) => void;
+  setPain: (dateKey: string, p: Pain) => void;
+  toggleSymptom: (dateKey: string, sym: string) => void;
   // プラン・設定
   setPlan: (p: PlanId) => void;
   updateOshi: (patch: Partial<AppState["oshi"]>) => void;
@@ -178,21 +189,48 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }),
       deleteMemo: (id) => patch((d) => ({ ...d, memos: d.memos.filter((m) => m.id !== id) })),
 
-      setCycleStart: (iso) => patch((d) => ({ ...d, health: { ...d.health, cycleStartDate: iso } })),
-      setMood: (m) => patch((d) => ({ ...d, health: { ...d.health, mood: m } })),
-      setPain: (p) => patch((d) => ({ ...d, health: { ...d.health, pain: p } })),
-      toggleSymptom: (sym) =>
+      startPeriod: () =>
         patch((d) => {
-          const has = d.health.symptoms.includes(sym);
+          const today = todayKey();
+          if (d.health.cycleStartDate) return d; // 既に進行中
           return {
             ...d,
             health: {
               ...d.health,
-              symptoms: has
-                ? d.health.symptoms.filter((x) => x !== sym)
-                : [...d.health.symptoms, sym],
+              cycleStartDate: today,
+              periods: [...d.health.periods, { start: today, end: null }],
             },
           };
+        }),
+      endPeriod: () =>
+        patch((d) => {
+          const today = todayKey();
+          // 直近の未終了の生理を閉じる
+          const periods = [...d.health.periods];
+          for (let i = periods.length - 1; i >= 0; i--) {
+            if (!periods[i].end) {
+              periods[i] = { ...periods[i], end: today };
+              break;
+            }
+          }
+          return { ...d, health: { ...d.health, cycleStartDate: null, periods } };
+        }),
+      setMood: (dateKey, m) =>
+        patch((d) => {
+          const cur = d.health.logs[dateKey] ?? EMPTY_LOG;
+          return { ...d, health: { ...d.health, logs: { ...d.health.logs, [dateKey]: { ...cur, mood: m } } } };
+        }),
+      setPain: (dateKey, p) =>
+        patch((d) => {
+          const cur = d.health.logs[dateKey] ?? EMPTY_LOG;
+          return { ...d, health: { ...d.health, logs: { ...d.health.logs, [dateKey]: { ...cur, pain: p } } } };
+        }),
+      toggleSymptom: (dateKey, sym) =>
+        patch((d) => {
+          const cur = d.health.logs[dateKey] ?? EMPTY_LOG;
+          const has = cur.symptoms.includes(sym);
+          const symptoms = has ? cur.symptoms.filter((x) => x !== sym) : [...cur.symptoms, sym];
+          return { ...d, health: { ...d.health, logs: { ...d.health.logs, [dateKey]: { ...cur, symptoms } } } };
         }),
 
       setPlan: (p) => patch((d) => ({ ...d, plan: p })),
@@ -212,11 +250,8 @@ export function useStore(): Store {
   return v;
 }
 
-// 生理周期の日数を計算（開始日からの経過日 +1）
+// 生理周期の日数（開始日からの経過日 +1）
 export function cycleDay(cycleStartDate: string | null): number | null {
   if (!cycleStartDate) return null;
-  const start = new Date(cycleStartDate);
-  const now = new Date();
-  const ms = now.setHours(0, 0, 0, 0) - start.setHours(0, 0, 0, 0);
-  return Math.max(1, Math.floor(ms / 86400000) + 1);
+  return Math.max(1, diffDays(todayKey(), cycleStartDate) + 1);
 }
