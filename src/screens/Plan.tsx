@@ -91,13 +91,16 @@ export function Plan() {
         <p className="text-[12px] font-bold text-ink">課金の考え方</p>
         <ul className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-muted">
           <li>
+            🌱 <span className="font-bold text-ink">無料</span>：基本のキャラ設定・推しと話す・TODO・メモ。
+          </li>
+          <li>
             🧾 <span className="font-bold text-ink">買い切り</span>：体調管理パック（生理・体調）。女性の“最低限”を一度買えばずっと。
           </li>
           <li>
             🗓 <span className="font-bold text-ink">月額</span>：お守りプラン（推しと深く）。
           </li>
           <li>
-            ⚡ <span className="font-bold text-ink">従量（その都度）</span>：キャラ要素のカスタマイズ／AI会話の使いすぎ分。使った分だけ。
+            ⚡ <span className="font-bold text-ink">従量（その都度）</span>：キャラを“凝って作り込む”／AI会話の使いすぎ分。使った分だけ。
           </li>
         </ul>
       </Card>
