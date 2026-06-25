@@ -39,7 +39,7 @@ function AppShell() {
       {screen === "chat" && <Chat />}
       {screen === "todo" && <Todo />}
       {screen === "health" && <Health />}
-      {screen === "memo" && <Memo go={setScreen} />}
+      {screen === "memo" && <Memo />}
       {screen === "plan" && <Plan />}
       {screen === "settings" && <Settings />}
       <BottomNav active={screen} onChange={setScreen} />

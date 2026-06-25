@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useStore } from "../store";
-import { Screen, Card } from "../components/ui";
-import type { ScreenId } from "../types";
+import { Screen, TopBar, Card } from "../components/ui";
 
-export function Memo({ go }: { go: (s: ScreenId) => void }) {
+export function Memo() {
   const { s, addMemo, deleteMemo } = useStore();
   const [text, setText] = useState("");
 
@@ -15,17 +14,7 @@ export function Memo({ go }: { go: (s: ScreenId) => void }) {
 
   return (
     <Screen>
-      <div className="flex items-center gap-2 pt-2">
-        <button
-          onClick={() => go("home")}
-          className="-ml-1 flex h-9 w-9 items-center justify-center rounded-full text-[18px] text-muted active:bg-surface"
-          aria-label="ホームへ"
-        >
-          ←
-        </button>
-        <h1 className="font-mincho text-[22px] font-bold text-ink">🗒 フリーメモ</h1>
-      </div>
-      <p className="mb-4 ml-10 mt-1 text-[13px] text-muted">気になったこと、何でも。端末内だけに保存。</p>
+      <TopBar title="📝 フリーメモ" caption="気になったこと、何でも。端末内だけに保存。" />
 
       {/* 追加 */}
       <Card className="mb-4">

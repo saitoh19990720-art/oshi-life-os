@@ -4,6 +4,7 @@ const TABS: { id: ScreenId; icon: string; label: string }[] = [
   { id: "home", icon: "🏠", label: "ホーム" },
   { id: "chat", icon: "💬", label: "チャット" },
   { id: "todo", icon: "📋", label: "TODO" },
+  { id: "memo", icon: "📝", label: "メモ" },
   { id: "health", icon: "🩸", label: "体調" },
   { id: "plan", icon: "🧿", label: "プラン" },
   { id: "settings", icon: "⚙️", label: "設定" },
